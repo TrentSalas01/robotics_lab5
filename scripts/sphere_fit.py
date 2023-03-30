@@ -9,20 +9,20 @@ from robot_vision_lectures.msg import SphereParams
 from geometry_msgs.msg import Point
 from cv_bridge import CvBridge
 
-#class to get x, y, and z coords/positions
-class xyz:
-	def __init__(self, x=0, y=0, z=0):
-		self.x = x
-		self.y = y
-		self.z = z
-#initiate a Point
-Point = xyz(0,0,0)
+
+xyz = XYZarray()
 
 #function to get points
 def get_xyz(XYZarray):
-	global Point
-	XYZarray = XYZarray.points
-	Point = xyz(XYZarray[0].x, XYZarray[0].y, XYZarray[0].z)
+	global xyz
+	xyz = XYZarray
+
+def sphere_params(XYZarray):
+	points = XYZarray.points
+	B = [[i.x**2 + i.y**2 + i.z**2] for i in points]
+	A = [[2*i.x, 2*i.y, 2*i.z, 1] for i in points]
+	P = np.linalg.lstsq(A, B, rcond = None)[0]
+	return SphereParams(P[0], P[1], P[2], math.sqrt(P[3] + xc**2 + yc**2 + zc**2))
 	
 	
 
@@ -37,30 +37,16 @@ if __name__ == '__main__':
 	# set the loop frequency
 	rate = rospy.Rate(10)
 	
+	x = 0
+	
+	
 	while not rospy.is_shutdown():
 		#test to see values
-		print(Point.x, Point.y, Point.z)
-		# Calculates the center of the ball
-		B = [[Point.x**2 + Point.y**2 + Point.z**2],
-		     [Point.x**2 + Point.y**2 + Point.z**2],
-		     [Point.x**2 + Point.y**2 + Point.z**2],
-		     [Point.x**2 + Point.y**2 + Point.z**2]]
-		    
-		A = [[2*Point.x, 2*Point.y, 2*Point.z, 1],
-		     [2*Point.x, 2*Point.y, 2*Point.z, 1],
-		     [2*Point.x, 2*Point.y, 2*Point.z, 1],
-		     [2*Point.x, 2*Point.y, 2*Point.z, 1]]
-		#Uses formula to calculate P
-		P = np.true_divide(B, A)
 		
-		xc = P[0]
-		yc = P[1]
-		zc = P[2]
-		#Uses coords to calculate the radius of the ball
-		radius = math.sqrt(P[3][0] + xc**2 + yc**2 + zc**2)
+		if len(XYZarray2.points) == 0:
+			continue
 		
-		#set up variable to publish
-		sphere_params = SphereParams()
+		sphere_params = sphere_params(xyz)
 		sphere_params.xc = xc
 		sphere_params.yc = yc
 		sphere_params.zc = zc
