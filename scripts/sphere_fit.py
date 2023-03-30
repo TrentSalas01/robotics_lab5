@@ -9,21 +9,25 @@ from robot_vision_lectures.msg import SphereParams
 from geometry_msgs.msg import Point
 from cv_bridge import CvBridge
 
-
+#initiate XYZarray
 xyz = XYZarray()
 
-#function to get points
+#function to get xyz from XYZarray
 def get_xyz(XYZarray):
 	global xyz
 	xyz = XYZarray
-
+	
+#function to calculate center and radius
 def sphere_params(xyz1):
 	points = xyz1.points
+	#calculations for B and A which is used to solve for P.
 	B = [[i.x**2 + i.y**2 + i.z**2] for i in points if i.x < 1]
 	A = [[2*i.x, 2*i.y, 2*i.z, 1] for i in points if i.x < 1]
+	#solve for P
 	P = np.linalg.lstsq(A, B, rcond = None)[0]
-	
+	#make P and numpy array
 	P = np.array(P)
+	#return the SPhereParams of the xc, yc, zc, and radius
 	return SphereParams(P[0], P[1], P[2], math.sqrt(P[3] + P[0]**2 + P[1]**2 + P[2]**2))
 	
 	
@@ -43,13 +47,12 @@ if __name__ == '__main__':
 	
 	
 	while not rospy.is_shutdown():
-		#test to see values
-		
+		#get rid of empty lists
 		if len(xyz.points) == 0:
 			continue
 		
 		
-		
+		#publish node
 		sphere_params1 = sphere_params(xyz)
 		print(sphere_params1.xc, sphere_params1.yc, sphere_params1.zc, sphere_params1.radius)
 		sphere_pub.publish(sphere_params1)
